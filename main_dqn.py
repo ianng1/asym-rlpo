@@ -7,6 +7,7 @@ import signal
 from dataclasses import asdict, dataclass
 from typing import Dict, NamedTuple
 
+import pdb
 import numpy as np
 import torch
 import torch.nn as nn
@@ -294,7 +295,6 @@ class RunStateSerializer(Serializer[RunState]):
 
 def setup() -> RunState:
     config = get_config()
-
     table = str.maketrans({'-': '_'})
     latent_type = LatentType[config.latent_type.upper().translate(table)]
     env = make_env(
@@ -302,13 +302,11 @@ def setup() -> RunState:
         latent_type=latent_type,
         max_episode_timesteps=config.max_episode_timesteps,
     )
-
     algo = make_dqn_algorithm(
         config.algo,
         env,
         truncated_histories_n=config.truncated_histories_n,
     )
-
     optimizer = torch.optim.Adam(
         algo.models.parameters(),
         lr=config.optim_lr,
@@ -410,7 +408,6 @@ def run(runstate: RunState) -> bool:
         value_to=config.epsilon_value_to,
         nsteps=config.epsilon_nsteps,
     )
-
     behavior_policy = algo.behavior_policy(env.action_space)
     target_policy = algo.target_policy()
 
@@ -467,7 +464,6 @@ def run(runstate: RunState) -> bool:
 
     checkpoint_dispenser = TimeDispenser(config.checkpoint_period)
     checkpoint_dispenser.dispense()  # burn first dispense
-
     # main learning loop
     wandb.watch(algo.models)
     while xstats.simulation_timesteps < config.max_simulation_timesteps:
@@ -476,7 +472,6 @@ def run(runstate: RunState) -> bool:
 
         if checkpoint_dispenser.dispense():
             save_checkpoint(runstate)
-
         algo.models.eval()
 
         # evaluate target policy

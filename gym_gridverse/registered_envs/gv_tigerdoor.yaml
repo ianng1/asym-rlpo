@@ -1,0 +1,36 @@
+state_space:
+  objects: [ Wall, Floor, Exit, MovingObstacle, Map ]
+  colors: [ NONE, RED, GREEN, BLUE, YELLOW ]
+
+action_space:
+  - MOVE_FORWARD
+  - MOVE_BACKWARD
+  - MOVE_LEFT
+  - MOVE_RIGHT
+
+observation_space:
+  objects: [ Wall, Floor, Exit, MovingObstacle, Map ]
+  colors: [ NONE, RED, GREEN, BLUE, YELLOW ]
+
+reset_function:
+  name: tigerdoor
+  shape: [ 6, 7 ]
+  goal_top : False
+
+transition_functions:
+  - name: move_agent
+
+reward_functions:
+  - name: reach_exit
+    reward_on: 1.0
+    reward_off: -0.1
+  - name: bump_moving_obstacle
+    reward: -0.9
+
+observation_function:
+  name: only_view_map
+  area: [ [ 4, 4 ], [ 1, 1 ] ]
+
+terminating_function:
+  name: reach_exit
+  name: bump_moving_obstacle

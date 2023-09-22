@@ -12,7 +12,7 @@ from asym_rlpo.representations.interaction import InteractionRepresentation
 from asym_rlpo.representations.normalization import NormalizationRepresentation
 from asym_rlpo.representations.resize import ResizeRepresentation
 from asym_rlpo.utils.config import get_config
-
+import pdb
 
 def _make_q_model(in_size, out_size) -> nn.Module:
     return make_mlp([in_size, 512, out_size], ['relu', 'identity'])
@@ -27,23 +27,43 @@ def _make_policy_model(in_size, out_size) -> nn.Module:
 
 
 def _make_representation_models(env: Environment) -> nn.ModuleDict:
+    
     config = get_config()
-
     action_model = EmptyRepresentation()
+    # observation_model = GV_Representation(
+    #     env.observation_space,
+    #     [f'grid-{config.gv_state_grid_model_type}', 'item'],
+    #     embedding_size=8,
+    #     layers=[512] * config.gv_observation_representation_layers,
+    # )
+
+    # latent_model = (
+    #     GV_Memory_Representation(env.latent_space, embedding_size=64)
+    #     if env.latent_type is LatentType.GV_MEMORY
+    #     else GV_Representation(
+    #         env.latent_space,
+    #         [f'agent-grid-{config.gv_state_grid_model_type}', 'agent', 'item'],
+    #         embedding_size=1,
+    #         layers=[512] * config.gv_state_representation_layers,
+    #     )
+    # )
+
+    # FOR USE WITH 3-STATE MAP ONLY
     observation_model = GV_Representation(
         env.observation_space,
-        [f'grid-{config.gv_state_grid_model_type}', 'item'],
+        ['map'],
         embedding_size=8,
-        layers=[512] * config.gv_observation_representation_layers,
+        layers=[32] * config.gv_observation_representation_layers,
     )
+    
     latent_model = (
         GV_Memory_Representation(env.latent_space, embedding_size=64)
         if env.latent_type is LatentType.GV_MEMORY
         else GV_Representation(
             env.latent_space,
-            [f'agent-grid-{config.gv_state_grid_model_type}', 'agent', 'item'],
+            ['map'],
             embedding_size=1,
-            layers=[512] * config.gv_state_representation_layers,
+            layers=[32] * config.gv_state_representation_layers,
         )
     )
 
@@ -86,7 +106,6 @@ def make_models(env: Environment) -> nn.ModuleDict:
             'critic': _make_representation_models(env),
         }
     )
-
     # DQN models
     models.agent.update(
         {
@@ -102,7 +121,7 @@ def make_models(env: Environment) -> nn.ModuleDict:
             ),
         }
     )
-
+    
     # A2C models
     models.agent.update(
         {

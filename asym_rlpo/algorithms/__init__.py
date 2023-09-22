@@ -14,6 +14,7 @@ from .dqn.adqn_short import ADQN_Short
 from .dqn.adqn_state import ADQN_State, ADQN_State_Bootstrap
 from .dqn.base import DQN_ABC
 from .dqn.dqn import DQN
+import pdb
 
 _a2c_algorithm_classes = {
     'a2c': A2C,
@@ -83,9 +84,10 @@ def make_dqn_algorithm(
         compute_history_features,
         n=truncated_histories_n,
     )
-
+    
     algorithm_class = get_dqn_algorithm_class(name)
     models = make_models(env, keys=algorithm_class.model_keys)
+    # pdb.set_trace()
     return algorithm_class(
         models,
         make_history_integrator=partial_make_history_integrator,

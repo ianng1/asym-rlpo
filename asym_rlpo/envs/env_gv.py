@@ -15,7 +15,7 @@ from gym_gridverse.representations.observation_representations import (
 from gym_gridverse.representations.state_representations import (
     make_state_representation,
 )
-
+import pdb
 from asym_rlpo.utils.config import get_config
 
 from .env import (
@@ -32,7 +32,6 @@ def make_gv_env(path: str, latent_type: LatentType) -> Environment:
     reset_gv_debug(False)
 
     config = get_config()
-
     print('Loading using YAML')
     inner_env = factory_env_from_yaml(path)
     state_representation = make_state_representation(

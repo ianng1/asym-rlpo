@@ -13,7 +13,7 @@ from asym_rlpo.representations.cat import CatRepresentation
 from asym_rlpo.representations.embedding import EmbeddingRepresentation
 from asym_rlpo.utils.convert import numpy2torch
 from asym_rlpo.utils.debugging import checkraise
-
+import pdb 
 from .base import Representation
 
 # gridverse types
@@ -63,10 +63,15 @@ class GV_Representation(Representation):
         super().__init__()
         self.space = space
 
-        num_embeddings = max(
-            space['grid'].high.max() + 1,
-            space['item'].high.max() + 1,
-        )
+        # USE THIS NORMALLY
+        # num_embeddings = max(
+        #     space['grid'].high.max() + 1,
+        #     space['item'].high.max() + 1,
+        # )
+
+        num_embeddings = max([
+            space[x].high.max() + 1 for x in space.keys()
+        ])
         self.embedding = EmbeddingRepresentation(num_embeddings, embedding_size)
         gv_models = [self._make_gv_model(name) for name in names]
         self.cat_representation = CatRepresentation(gv_models)
@@ -147,6 +152,9 @@ class GV_Representation(Representation):
                 'space does not contain `agent_id_grid` key',
             )
             return GV_AgentGrid_FC_Representation(self.space, self.embedding)
+        
+        if name == 'map':
+            return GV_Map_Representation(self.space)
 
         raise ValueError(f'invalid gv model name {name}')
 
@@ -372,3 +380,18 @@ class GV_Memory_Representation(Representation):
 
     def forward(self, inputs: torch.Tensor):
         return self.embedding(inputs)
+
+class GV_Map_Representation(Representation):
+    def __init__(self, space: gym.spaces.Box):
+        super().__init__()
+
+    @property
+    def dim(self):
+        return 3
+
+    def forward(self, inputs: torch.Tensor):
+        # return self.embedding(inputs)
+        inputs = inputs['grid'][0][0][0][0]
+
+        # split into 3-tuple
+        return torch.tensor([inputs // 100, (inputs % 100) // 10, (inputs % 10)])

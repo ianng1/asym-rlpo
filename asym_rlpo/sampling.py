@@ -7,7 +7,7 @@ from asym_rlpo.policies import Policy, RandomPolicy
 from asym_rlpo.utils.convert import numpy2torch
 
 from .data import Episode, Interaction
-
+import pdb
 
 def sample_episode(
     env: Environment,
@@ -17,17 +17,17 @@ def sample_episode(
 ) -> Episode:
     if policy is None:
         policy = RandomPolicy(env.action_space)
-
+    print("SAMPLING")
     with torch.no_grad():
         interactions: List[Interaction] = []
 
         done = False
         observation, latent = env.reset()
+        print("POLICY", policy)
         policy.reset(numpy2torch(observation))
-
         if render:
             env.render()
-
+        
         while True:
             action = policy.sample_action()
             next_observation, next_latent, reward, done = env.step(action)

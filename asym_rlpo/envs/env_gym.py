@@ -5,7 +5,7 @@ from typing import Dict, Optional, Protocol, Tuple
 
 import gym
 import gym.spaces
-import gym_pomdps
+# import gym_pomdps
 
 from asym_rlpo.utils.debugging import checkraise
 from asym_rlpo.wrapper import IndexWrapper
@@ -40,8 +40,8 @@ def make_gym_env(id: str, *, latent_type: LatentType) -> Environment:
             raise ValueError from e
 
         else:
-            if isinstance(gym_env.unwrapped, gym_pomdps.POMDP):
-                return GymEnvironment(gym_env, EnvironmentType.FLAT)
+            # if isinstance(gym_env.unwrapped, gym_pomdps.POMDP):
+            #     return GymEnvironment(gym_env, EnvironmentType.FLAT)
 
             if re.fullmatch(r'extra-dectiger-v\d+', gym_env.spec.id):
                 return GymEnvironment(gym_env, EnvironmentType.EXTRA_DECTIGER)
