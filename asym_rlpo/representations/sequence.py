@@ -7,6 +7,7 @@ import torch.nn.functional as F
 
 from .base import Representation
 from .mlp import MLPRepresentation
+import pdb
 
 H = TypeVar('H')
 
@@ -65,8 +66,6 @@ class GRUSequenceRepresentation(SequenceRepresentation[torch.Tensor]):
         *,
         hidden=Optional[torch.Tensor],
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        import pdb
-        pdb.set_trace()
         return self.gru(input, hidden)
 
 

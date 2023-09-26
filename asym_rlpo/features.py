@@ -10,6 +10,7 @@ from asym_rlpo.representations.history import HistoryRepresentation
 from asym_rlpo.representations.interaction import InteractionRepresentation
 
 import pdb
+
 def compute_interaction_features(
     interaction_model: InteractionRepresentation,
     action: Optional[torch.Tensor],
@@ -27,8 +28,6 @@ def compute_interaction_features(
         if action is None
         else action_model(action.to(device))
     )
-    import pdb
-    pdb.set_trace()
     interaction_features = torch.cat(
         [action_features.to(device), observation_features.to(device)], dim=-1
     )
@@ -151,21 +150,18 @@ class FullHistoryIntegrator(HistoryIntegrator):
         self.__hidden: torch.Tensor
 
     def reset(self, observation):
-        observation = gtorch.squeeze(observation)
         interaction_features = self.compute_interaction_features(
             None,
             gtorch.unsqueeze(observation, 0),
         ).unsqueeze(1)
         
-        pdb.set_trace()
         self.__features, self.__hidden = self.history_model(
             torch.transpose(interaction_features, 0, 1)
         )
         self.__features = self.__features.squeeze(0).squeeze(0)
 
     def step(self, action, observation):
-        pdb.set_trace()
-        observation = gtorch.squeeze(observation)
+        # observation = gtorch.squeeze(observation)
         interaction_features = self.compute_interaction_features(
             action.unsqueeze(0),
             gtorch.unsqueeze(observation, 0),

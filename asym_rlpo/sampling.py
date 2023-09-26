@@ -32,7 +32,6 @@ def sample_episode(
             action = policy.sample_action()
             next_observation, next_latent, reward, done = env.step(action)
             policy.step(torch.tensor(action), numpy2torch(next_observation))
-
             if render:
                 env.render()
 

@@ -391,6 +391,7 @@ class GV_Map_Representation(Representation):
 
     def forward(self, inputs: torch.Tensor):
         # return self.embedding(inputs)
+        print(inputs)
         inputs = inputs['grid'][0][0][0][0]
 
         # split into 3-tuple
