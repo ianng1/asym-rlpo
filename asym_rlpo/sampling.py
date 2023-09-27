@@ -20,7 +20,7 @@ def sample_episode(
     print("SAMPLING")
     with torch.no_grad():
         interactions: List[Interaction] = []
-
+        counter = 0
         done = False
         observation, latent = env.reset()
         print("POLICY", policy)
@@ -49,7 +49,8 @@ def sample_episode(
 
             latent = next_latent
             observation = next_observation
-
+            counter += 1
+    print("Finished sample episode with timesteps", counter)
     return Episode.from_interactions(interactions)
 
 
