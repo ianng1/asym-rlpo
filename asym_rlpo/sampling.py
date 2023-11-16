@@ -14,22 +14,22 @@ def sample_episode(
     policy: Optional[Policy] = None,
     *,
     render: bool = False,
+    filepath: str = "",
 ) -> Episode:
+    actions = []
     if policy is None:
         policy = RandomPolicy(env.action_space)
-    print("SAMPLING")
     with torch.no_grad():
         interactions: List[Interaction] = []
         counter = 0
         done = False
         observation, latent = env.reset()
-        print("POLICY", policy)
         policy.reset(numpy2torch(observation))
         if render:
             env.render()
-        
         while True:
             action = policy.sample_action()
+            actions.append(int(action))
             next_observation, next_latent, reward, done = env.step(action)
             policy.step(torch.tensor(action), numpy2torch(next_observation))
             if render:
@@ -50,7 +50,9 @@ def sample_episode(
             latent = next_latent
             observation = next_observation
             counter += 1
-    print("Finished sample episode with timesteps", counter)
+    if render:
+        with open(filepath, 'w') as txtfile:
+            txtfile.write(" ".join(actions))
     return Episode.from_interactions(interactions)
 
 

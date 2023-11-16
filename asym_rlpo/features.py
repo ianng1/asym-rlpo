@@ -21,7 +21,7 @@ def compute_interaction_features(
     action_model = interaction_model.action_model
     observation_model = interaction_model.observation_model
 
-    observation_features = observation_model(gtorch.to(observation, device))[None, :].to(device)
+    observation_features = observation_model(gtorch.to(observation, device))
     batch_shape = observation_features.shape[:-1]
     action_features = (
         torch.zeros(batch_shape + (action_model.dim,), device=device)

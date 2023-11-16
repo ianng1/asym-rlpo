@@ -19,6 +19,7 @@ from gym_gridverse.grid_object import (
     NoneGridObject,
     Telepod,
     Map,
+    Tracker,
     Color,
     Exit
 )
@@ -191,7 +192,7 @@ def move_agent(
             state.agent.position = next_position
 
             map_obj = state.grid[4, 1]
-            if isinstance(state.grid[state.agent.position], Map):
+            if isinstance(state.grid[state.agent.position], Map) and isinstance(map_obj, Map):
                 
                 if isinstance(state.grid[2, 5], Exit):
                     map_obj.state = [Map.MapStatus.TOP, state.agent.position.y, state.agent.position.x]
@@ -200,10 +201,30 @@ def move_agent(
                     map_obj.state =[Map.MapStatus.BOTTOM, state.agent.position.y, state.agent.position.x]
                     map_obj.color = Color.BLUE
             else:
-                map_obj.state = [Map.MapStatus.UNSEEN, state.agent.position.y, state.agent.position.x]
-                map_obj.color = Color.RED
-
-                        
+                if isinstance(map_obj, Map):
+                    map_obj.state = [Map.MapStatus.UNSEEN, state.agent.position.y, state.agent.position.x]
+                    map_obj.color = Color.RED
+            
+            tracker_obj = state.grid[0, 0]
+            if isinstance(tracker_obj, Tracker):
+                # find goal
+                goal_ylocation = -1
+                goal_xlocation = -1
+                found = False
+                for ytemp in range(6):
+                    if not found:
+                        for xtemp in range(7):
+                            if isinstance(state.grid[ytemp, xtemp], Exit):
+                                goal_ylocation = ytemp
+                                goal_xlocation = xtemp
+                                found = True
+                                break
+                if state.agent.position.x < 6:
+                    tracker_obj.state = [state.agent.position.y, state.agent.position.x, 0, 0]
+                    tracker_obj.color = Color.RED
+                else:
+                    tracker_obj.state = [state.agent.position.y, state.agent.position.x, goal_ylocation, goal_xlocation]
+                    tracker_obj.color = Color.BLUE
 
 
 @transition_function_registry.register

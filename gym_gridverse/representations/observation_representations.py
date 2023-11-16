@@ -12,6 +12,7 @@ from gym_gridverse.representations.representation import (
     compact_grid_object_representation_space,
     default_grid_object_representation_convert,
     map_grid_object_representation_convert,
+    tracker_grid_object_representation_convert,
     default_grid_object_representation_space,
     no_overlap_grid_object_representation_convert,
     no_overlap_grid_object_representation_space,
@@ -64,6 +65,17 @@ def make_observation_representation(
         return DictObservationRepresentation(observation_space, representations)
     if name == 'map':
         grid_object_representation = MapGridObjectObservationRepresentation(
+            observation_space
+        )
+        representations = {
+            'grid': GridObservationRepresentation(
+                observation_space, grid_object_representation
+            )
+        }
+        return DictObservationRepresentation(observation_space, representations)
+    
+    if name == 'tracker':
+        grid_object_representation = TrackerGridObjectObservationRepresentation(
             observation_space
         )
         representations = {
@@ -272,6 +284,26 @@ class MapGridObjectObservationRepresentation(
     def convert(self, grid_object: GridObject) -> np.ndarray:
         return map_grid_object_representation_convert(grid_object)
 
+class TrackerGridObjectObservationRepresentation(
+    GridObjectObservationRepresentation
+):
+    def __init__(self, observation_space: ObservationSpace):
+        super().__init__(observation_space)
+        self._grid_object_types = set(self.observation_space.object_types) | {
+            Hidden,
+            NoneGridObject,
+        }
+        self._grid_object_colors = set(self.observation_space.colors)
+
+    @property
+    def space(self) -> Space:
+        return default_grid_object_representation_space(
+            self._grid_object_types,
+            self._grid_object_colors,
+        )
+
+    def convert(self, grid_object: GridObject) -> np.ndarray:
+        return tracker_grid_object_representation_convert(grid_object)
 
 class NoOverlapGridObjectObservationRepresentation(
     GridObjectObservationRepresentation

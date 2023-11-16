@@ -46,7 +46,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     # wandb arguments
-    parser.add_argument('--wandb-entity', default='abaisero')
+    parser.add_argument('--wandb-entity', default='iyhn8192')
     parser.add_argument('--wandb-project', default=None)
     parser.add_argument('--wandb-group', default=None)
     parser.add_argument('--wandb-tag', action='append', dest='wandb_tags')
@@ -88,7 +88,7 @@ def parse_args():
     parser.add_argument(
         '--max-simulation-timesteps', type=int, default=2_000_000
     )
-    parser.add_argument('--max-episode-timesteps', type=int, default=1_000)
+    parser.add_argument('--max-episode-timesteps', type=int, default=20)
     parser.add_argument('--simulation-num-episodes', type=int, default=1)
 
     # evaluation
@@ -105,7 +105,7 @@ def parse_args():
         '--episode-buffer-max-timesteps', type=int, default=1_000_000
     )
     parser.add_argument(
-        '--episode-buffer-prepopulate-timesteps', type=int, default=50_000
+        '--episode-buffer-prepopulate-timesteps', type=int, default=320_000
     )
     parser.add_argument(
         '--episode-buffer-prepopulate-policy',
@@ -297,6 +297,7 @@ def setup() -> RunState:
     config = get_config()
     table = str.maketrans({'-': '_'})
     latent_type = LatentType[config.latent_type.upper().translate(table)]
+    
     env = make_env(
         config.env,
         latent_type=latent_type,
@@ -473,7 +474,6 @@ def run(runstate: RunState) -> bool:
         if checkpoint_dispenser.dispense():
             save_checkpoint(runstate)
         algo.models.eval()
-
         # evaluate target policy
         if config.evaluation and xstats.epoch % config.evaluation_period == 0:
             if config.render:
@@ -494,6 +494,12 @@ def run(runstate: RunState) -> bool:
             )
             avg_target_returns.extend(returns.tolist())
             logger.info(
+                'EVALUATE epoch %d simulation_step %d return %.3f',
+                xstats.epoch,
+                xstats.simulation_timesteps,
+                returns.mean(),
+            )
+            print(
                 'EVALUATE epoch %d simulation_step %d return %.3f',
                 xstats.epoch,
                 xstats.simulation_timesteps,
@@ -551,8 +557,15 @@ def run(runstate: RunState) -> bool:
         episodes = [episode.torch().to(device) for episode in episodes]
         episode_buffer.append_episodes(episodes)
         xstats.simulation_episodes += len(episodes)
-        xstats.simulation_timesteps += sum(len(episode) for episode in episodes)
+        
 
+
+        prev_timesteps = xstats.simulation_timesteps
+        xstats.simulation_timesteps += sum(len(episode) for episode in episodes)
+        if (xstats.simulation_timesteps // 100000 != prev_timesteps // 100000):
+            with open('/iris/u/iyhn8192/asym-rlpo/experiments/tigerdoor.txt', 'a') as txtfile:
+                txtfile.write(" ".join([str(int(x)) for x in episodes[0].actions]) + "\n")
+                print("Wrote new episode at timestep", prev_timesteps)
         # target model update
         if target_update_dispenser.dispense(xstats.simulation_timesteps):
             # Update the target network
@@ -560,6 +573,7 @@ def run(runstate: RunState) -> bool:
 
         # train based on episode buffer
         algo.models.train()
+        total_episodes = 0
         while (
             xstats.training_timesteps
             < (
@@ -601,7 +615,7 @@ def run(runstate: RunState) -> bool:
 
             if config.save_modelseq and config.modelseq_filename is not None:
                 data = {
-                    'metadata': {'config': config._as_dict()},
+                    'metadata': config._as_dict(),
                     'data': {
                         'timestep': xstats.simulation_timesteps,
                         'model.state_dict': algo.models.state_dict(),
@@ -611,6 +625,7 @@ def run(runstate: RunState) -> bool:
                     xstats.simulation_timesteps
                 )
                 save_data(filename, data)
+            
 
             xstats.optimizer_steps += 1
             xstats.training_episodes += len(episodes)
@@ -621,13 +636,23 @@ def run(runstate: RunState) -> bool:
         xstats.epoch += 1
 
     done = not interrupt
-
-    if done and config.save_model and config.model_filename is not None:
+    
+    if (xstats.training_timesteps // 100000) != sum(len(episode) for episode in episodes) // 100000 and config.save_model and config.model_filename is not None:
+        config_dict = config._as_dict()
+        config_dict['wandb_id'] = wandb.run.id
         data = {
-            'metadata': {'config': config._as_dict()},
+            'metadata': config_dict,
             'data': {'models.state_dict': algo.models.state_dict()},
         }
-        save_data(config.model_filename, data)
+    save_data(config.model_filename + str(xstats.training_timesteps) + ".pt", data)
+    if done and config.save_model and config.model_filename is not None:
+        config_dict = config._as_dict()
+        config_dict['wandb_id'] = wandb.run.id
+        data = {
+            'metadata': {'config': config_dict},
+            'data': {'models.state_dict': algo.models.state_dict()},
+        }
+        save_data(config.model_filename + "final.pt", data)
 
     return done
 

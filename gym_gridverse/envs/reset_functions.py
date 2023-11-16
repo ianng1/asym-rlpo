@@ -3,7 +3,7 @@ import itertools as itt
 import warnings
 from functools import partial
 from typing import List, Optional, Set, Tuple, Type
-
+import random
 import more_itertools as mitt
 import numpy as np
 import numpy.random as rnd
@@ -30,7 +30,8 @@ from gym_gridverse.grid_object import (
     MovingObstacle,
     Telepod,
     Wall,
-    Map
+    Map,
+    Tracker
 )
 from gym_gridverse.rng import choice, choices, get_gv_rng_if_none, shuffle
 from gym_gridverse.state import State
@@ -626,7 +627,6 @@ def tigerdoor(
     Returns:
         State:
     """
-    print("Trying")
     rng = get_gv_rng_if_none(rng)
 
     state = empty(shape)
@@ -637,8 +637,9 @@ def tigerdoor(
 
     state.grid[3, 2] = Floor()
     state.grid[4, 1] = Map(Map.MapStatus.UNSEEN, (1, 1), Color.RED)
-
-    if goal_top:
+    
+    goal_location = random.randint(0, 1)
+    if goal_location == 0:
         state.grid[2, 5] = Exit()
         state.grid[4, 5] = MovingObstacle()
     else:
@@ -651,7 +652,57 @@ def tigerdoor(
 
     return state
 
+@reset_function_registry.register
+def lightdark(
+    shape: Shape,
+    goal_y: bool,
+    goal_x: bool,
+    *,
+    rng: Optional[rnd.Generator] = None,
+) -> State:
+    """An environment with "rivers" to be crosses
 
+    Creates a height x width (including wall) grid with random rows/columns of
+    objects called "rivers". The agent needs to navigate river openings to
+    reach the exit.  For example::
+
+        #########
+        #@    # #
+        #### ####
+        #     # #
+        ## ######
+        #       #
+        #     # #
+        #     #E#
+        #########
+
+    Args:
+        shape (`Shape`): shape (odd height and width) of grid
+        num_rivers (`int`): number of `rivers`
+        object_type (`Type[GridObject]`): river's object type
+        rng: (`Generator, optional`) 
+
+    Returns:
+        State:
+    """
+    rng = get_gv_rng_if_none(rng)
+
+    state = empty(shape)
+
+    state.grid[5, 6] = Floor()
+    random_start_y = random.randint(1, 5)
+    random_start_x = random.randint(1, 5)
+    while (random_start_y == 3 and random_start_x == 3):
+        random_start_y = random.randint(1, 5)
+        random_start_x = random.randint(1, 5)
+
+    state.grid[3, 3] = Exit()
+    state.grid[0, 0] = Tracker((random_start_y, random_start_x), (3, 3), Color.RED)
+    # Place agent on top left
+    state.agent.position = Position(random_start_y, random_start_x)
+    state.agent.orientation = Orientation.B
+
+    return state
 
 def factory(name: str, **kwargs) -> ResetFunction:
     name = import_if_custom(name)

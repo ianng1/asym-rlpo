@@ -388,8 +388,6 @@ class Box(GridObject):
         return f'{self.__class__.__name__}({self.content!r})'
 
 class Map(GridObject):
-    """A box which can be broken and may contain another object."""
-
     state_index = 0
     color = Color.NONE
     blocks_movement = False
@@ -432,6 +430,41 @@ class Map(GridObject):
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self.state!s})'
+
+class Tracker(GridObject):
+    state_index = 0
+    color = Color.RED
+    blocks_movement = False
+    blocks_vision = False
+    holdable = False
+    agent_location = (0, 0)
+
+    def __init__(self, agent_location: tuple, goal_location: tuple, color: Color):
+        super().__init__()
+        self.state = [agent_location[0], agent_location[1]]
+        if (agent_location[1] < 6):
+            self.state += [0, 0]
+            self.color = Color.RED
+        else:
+            self.state += [goal_location[0], goal_location[1]]
+            self.color = Color.BLUE
+    
+    @classmethod
+    def can_be_represented_in_state(cls) -> bool:
+        return True
+
+    @classmethod
+    def num_states(cls) -> int:
+        return 10000
+
+    @property
+    def state_index(self) -> int: 
+        return self.state[0] * 1000 + self.state[1] * 100 + self.state[2] * 10 + self.state[3]
+    
+    @property 
+    def __repr(self):
+        return f'{self.__class__.__name__}({self.state!s})'
+
 
 
 class Telepod(GridObject):

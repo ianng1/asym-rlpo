@@ -48,7 +48,6 @@ class GridWorld(InnerEnv):
 
         # TODO: maybe add a parameter to avoid calls to `contain` everywhere
         # (or maybe a global setting)
-
         self._reset_function = reset_function
         self._transition_function = transition_function
         self._observation_function = observation_function

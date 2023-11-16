@@ -123,8 +123,6 @@ def default_grid_object_representation_convert(
     :class:`~gym_gridverse.representations.observation_representations.DefaultObservationGridObjectObservationRepresentation`,
     refactored here because of DRY.
     """
-    import pdb
-    # pdb.set_trace()
     return np.array(
         [
             grid_object.type_index(),
@@ -137,14 +135,20 @@ def map_grid_object_representation_convert(
     grid_object: GridObject,
 ) -> np.ndarray:
     """Tigerdoor map specific implementation of grid"""
-    import pdb
-    # pdb.set_trace()
     return np.array(
         [
             grid_object.state_index,
         ]
     )
 
+def tracker_grid_object_representation_convert(
+    grid_object: GridObject,
+) -> np.ndarray:
+    return np.array(
+        [
+            grid_object.state_index,
+        ]
+    )
 
 def no_overlap_grid_object_representation_space(
     grid_object_types: Set[Type[GridObject]],

@@ -51,7 +51,7 @@ def _make_representation_models(env: Environment) -> nn.ModuleDict:
     # FOR USE WITH 3-STATE MAP ONLY
     observation_model = GV_Representation(
         env.observation_space,
-        ['map'],
+        ['tracker'],
         embedding_size=8,
         layers=[32] * config.gv_observation_representation_layers,
     )
@@ -61,7 +61,7 @@ def _make_representation_models(env: Environment) -> nn.ModuleDict:
         if env.latent_type is LatentType.GV_MEMORY
         else GV_Representation(
             env.latent_space,
-            ['map'],
+            ['tracker'],
             embedding_size=1,
             layers=[32] * config.gv_state_representation_layers,
         )

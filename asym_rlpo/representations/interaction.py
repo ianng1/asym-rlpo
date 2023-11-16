@@ -5,7 +5,7 @@ import torch
 from asym_rlpo.data import TorchObservation
 
 from .base import Representation
-
+import pdb
 
 class InteractionRepresentation(Representation):
     def __init__(
@@ -46,7 +46,6 @@ class InteractionRepresentation(Representation):
         action_features = action_features.roll(1, 0)
         action_features[0, :] = 0.0
         observation_features = self.observation_model(observations)
-
         return torch.cat([action_features, observation_features], dim=-1)
 
     def _default_action_features(self, observation_features):

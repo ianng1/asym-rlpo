@@ -155,7 +155,9 @@ class GV_Representation(Representation):
         
         if name == 'map':
             return GV_Map_Representation(self.space)
-
+        
+        if name == 'tracker':
+            return GV_Tracker_Representation(self.space)
         raise ValueError(f'invalid gv model name {name}')
 
 
@@ -391,7 +393,27 @@ class GV_Map_Representation(Representation):
 
     def forward(self, inputs: torch.Tensor):
         # return self.embedding(inputs)
-        inputs = inputs['grid'][0][0][0][0]
+        #inputs = inputs['grid'][0][0][0][0]
+        ar = []
+        for x in range(len(inputs['grid'])):
+            tmp = int(inputs['grid'][x][0][0][0])
+            ar.append([tmp // 100, (tmp % 100) // 10, (tmp % 10)])
 
         # split into 3-tuple
-        return torch.tensor([inputs // 100, (inputs % 100) // 10, (inputs % 10)])
+        # pdb.set_trace()
+        return torch.tensor(ar)
+
+class GV_Tracker_Representation(Representation):
+    def __init__(self, space: gym.spaces.Box):
+        super().__init__()
+
+    @property
+    def dim(self):
+        return 4
+    
+    def forward(self, inputs: torch.Tensor):
+        ar = []
+        for x in range(len(inputs['grid'])):
+            tmp = int(inputs['grid'][x][0][0][0])
+            ar.append([tmp // 1000, (tmp % 1000) // 100, (tmp % 100) // 10, (tmp % 10)])
+        return torch.tensor(ar)

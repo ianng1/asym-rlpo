@@ -11,14 +11,14 @@ class HistoryRepresentation(Representation):
         sequence_model: SequenceRepresentation,
     ):
         super().__init__()
-        self.sequence_model = sequence_model
+        self.sequence_model = sequence_model.to('cpu')
 
     @property
     def dim(self):
         return self.sequence_model.dim
 
     def forward(self, inputs, *, hidden=None):
-        return self.sequence_model(inputs, hidden=hidden)
+        return self.sequence_model.to('cpu')(inputs.to('cpu'), hidden=hidden)
 
 
 def make_history_representation(
